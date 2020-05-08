@@ -1,6 +1,9 @@
 package premier_test;
 
 import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,13 +16,19 @@ public class ListeSoftware extends JPanel {
 	private Fenetre parent;
 	private JComboBox typePc;
 	private JPanel pan;
+	private JLabel choosePc;
+	private JButton ok;
+	private GridBagConstraints gbc;
 	
 	
 	public ListeSoftware(Fenetre fen) {
 		parent = fen;
 		pan = new JPanel();
-		setLayout(new BorderLayout());
-		
+		setLayout(new GridBagLayout());
+		gbc = new GridBagConstraints();
+		gbc.insets = new Insets (20,10,0,5);
+		choosePc = new JLabel("Choisissez un pc :");
+		ok = new JButton("OK");
 		typePc = new JComboBox();
 		try {
 			Connection connection = parent.connection();
@@ -30,10 +39,22 @@ public class ListeSoftware extends JPanel {
 		}catch(SQLException e) {
 			e.printStackTrace();
 		}
-		pan.add(typePc);
-		add(pan);
+		
+		
+		
+		gbc.gridx = 0;
+		gbc.gridy = 3;
+		add(choosePc, gbc);
+		gbc.gridx = 1;
+		gbc.gridy = 3;
+		add(typePc, gbc);
+		gbc.gridx = 2;
+		gbc.gridy = 3;
+		gbc.anchor = GridBagConstraints.EAST;
+		add(ok, gbc);
+		
 		setVisible(true);
 	}
-		int hsestnul = 00000;
+	
 	
 }
