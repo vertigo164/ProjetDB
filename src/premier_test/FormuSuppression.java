@@ -15,9 +15,10 @@ import javax.swing.JTable;
 import accessBD.AccessBDGen;
 import accessBD.TableModelGen;
 
+
 public class FormuSuppression extends JPanel{
 	private JComboBox os;
-	private JPanel pan;
+	private JPanel pan, pan2, pan3;
 	private JButton ok;
 	private JButton supprimer;
 	private JTable tableInstall;
@@ -28,7 +29,6 @@ public class FormuSuppression extends JPanel{
 	
 	public FormuSuppression(Fenetre fen) {
 		parent = fen;
-		setLayout(new BorderLayout());
 		os = new JComboBox();
 		os.addItem("Choix OS");
 		pan = new JPanel();
@@ -53,49 +53,55 @@ public class FormuSuppression extends JPanel{
 	
 	setVisible(true);
 	}
-	
-	
-
-			
-		
-			
+				
 	
 private class GestionnaireAction implements ActionListener {
 	
 	public void actionPerformed(ActionEvent e) {
 		
-		
-		
 		if(e.getSource() == ok) {
 			try {
-				removeAll();
-				Connection connection = parent.connection();
-			
+				pan2 = new JPanel();
+				pan3 = new JPanel();
+				setLayout(new BorderLayout());
+				Box box = Box.createVerticalBox();
+				Box box2 = Box.createHorizontalBox();
+				
+				Connection connection = parent.connection();	
 				String select = "select * from Installation where CodeOS = ?";
 				PreparedStatement prepStat = connection.prepareStatement(select);
-				prepStat.setString(1,recupCodeOS());
-				ResultSet result = prepStat.executeQuery();
-			
-				TableModelGen modelInstall = AccessBDGen.creerTableModel(prepStat);
-				tableInstall = new JTable(modelInstall);
-				tableInstall.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 				
-			
-			
-				JScrollPane scroll = new JScrollPane(tableInstall);
-				add(scroll);
+				if(comboValide()) {
+					prepStat.setString(1,recupCodeOS());
+					ResultSet result = prepStat.executeQuery();
+					TableModelGen modelInstall = AccessBDGen.creerTableModel(prepStat);
+					tableInstall = new JTable(modelInstall);
+					box.add(tableInstall);
+					tableInstall.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 				
-				supprimer = new JButton("Supprimer");
-				GestionnaireAction g = new GestionnaireAction();
-				supprimer.addActionListener(g);
-				add(supprimer, BorderLayout.SOUTH);
+					JScrollPane scroll = new JScrollPane(tableInstall);
+					removeAll();
+					add(scroll);
 				
+					supprimer = new JButton("Supprimer");
+					box2.add(supprimer);
+				
+					GestionnaireAction g = new GestionnaireAction();
+					supprimer.addActionListener(g);
+
+					pan2.add(scroll);
+					add(pan2, BorderLayout.CENTER);
+					pan3.add(box2);	
+					add(pan3, BorderLayout.SOUTH);
+					repaint();
+					revalidate();
+				}
+	
 				connection.close();
+					
 			}catch(SQLException d) {
-				d.printStackTrace();
+				d.getMessage();
 			}
-			repaint();
-			revalidate();
 		
 		}
 		
@@ -108,31 +114,30 @@ private class GestionnaireAction implements ActionListener {
 				Connection connection = parent.connection();
 				String delete = "delete from Installation where idInstallation = ?";
 				PreparedStatement prepStat = connection.prepareStatement(delete);
-				prepStat.setInt(1,getId());
-				prepStat.executeUpdate();
+				prepStat.setObject(1,getId());
+				
+				if(prepStat.executeUpdate() > 0) {
+					JOptionPane.showMessageDialog(null, "Confirmation de suppression", "Information", JOptionPane.INFORMATION_MESSAGE);
+					
+					
+				}
 				
 				connection.close();
 				}
 				
 			}catch(SQLException d) {
-				d.printStackTrace();
-			}
+				d.getMessage();
+				}
 		
+			}
 		}
-}
+	}
 	
-private int getId() {
-	tableInstall.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-	int indiceLigneSelect = tableInstall.getSelectedRow();
-	int id =  (int)tableInstall.getModel().getValueAt(indiceLigneSelect, 1 );
-	System.out.println(id);
+	
+private Object getId() {
+	Object id = tableInstall.getValueAt(tableInstall.getSelectedRow(), 0);
 	return id ;
-}
-}
-
-
-
-
+	}
 
 
 private String recupCodeOS() {
@@ -150,12 +155,21 @@ private String recupCodeOS() {
 	            connection.close();
 	            
 	    }catch(SQLException e) {
-	        e.printStackTrace();
+	    	e.getMessage();
 	    }
 	    return res;
 	}
+
+private boolean comboValide() {
+	boolean comboVal = true;
 	
+	if(os.getSelectedItem ()== "Choix OS") {
+        JOptionPane.showMessageDialog(null, "Veuillez Séléctionner un OS", "Erreur", JOptionPane.ERROR_MESSAGE);
+        comboVal = false;}
 	
-	
-	
+	return comboVal;
 }
+}
+	
+	
+	

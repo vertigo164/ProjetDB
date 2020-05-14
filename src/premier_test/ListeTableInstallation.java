@@ -21,15 +21,15 @@ public class ListeTableInstallation extends JPanel{
 	
 	private JTable tableInstall;
 	private JScrollPane scroll;
-	private Fenetre fenParent;
+	private Fenetre parent;
 	
 	public ListeTableInstallation(Fenetre fen) {
+		parent = fen;
 		
-		fenParent = fen;
 		setLayout(new FlowLayout());
 		
 		try {
-			Connection connect = fen.connection();
+			Connection connect = parent.connection();
 	
 			String select = "select * from Installation";
 			PreparedStatement requete = connect.prepareStatement(select);

@@ -18,25 +18,21 @@ import accessBD.TableModelGen;
 public class ListeAllTable extends JPanel{
 
 	
-	
-	
+
+	private Fenetre parent;
 	private JTable tables;
 	private JScrollPane scroll, scrollGen;
-	private Fenetre fenParent;
 	
 	private String requetes[] = {"select * from AnneeEtude", "select * from Editeur","select * from FamilleSoftware","select * from Fournisseur", "select * from Installation","select * from OS","select * from Professeur", "select * from ResponsableReseaux","select * from Section","select * from Software", "select * from SoftwarePreinstalle", "select * from TypePC","select * from UtilisationSoftware" };
 	
 	public ListeAllTable(Fenetre fen) {
-		fenParent = fen;
+		parent = fen;
 		Box box = Box.createVerticalBox();
-		
-		
-		
-		
+			
 		int hauteurPanneau = 0;
 		 
 		try {
-			Connection connect = fen.connection();
+			Connection connect = parent.connection();
 	
 			for (String requete : requetes) {
 				
@@ -56,7 +52,7 @@ public class ListeAllTable extends JPanel{
 			add(box);
 			connect.close();
 		}catch(SQLException e) {
-			e.printStackTrace();
+			e.getMessage();
 		}
 		
 		
@@ -64,4 +60,5 @@ public class ListeAllTable extends JPanel{
 	}
 	 
 }
+
 
