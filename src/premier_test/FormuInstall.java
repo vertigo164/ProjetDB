@@ -11,15 +11,16 @@ import java.sql.*;
 
 
 public class FormuInstall extends JPanel{
-	
-	private JLabel idInstallation, dateInstall, typeInstall, commentaires,dureeInstall, refProced, validation, dateValidPrevue, codeSoft, codeOS, respReseau;	
+	private JLabel idInstallation, dateInstall, typeInstall, commentaires,dureeInstall, refProced, validation, dateValidPrevue, codeSoft, codeOS, respReseau, facultatif;	
 	private JTextField zoneIdInstall, zoneDateInstall, zoneComment, zoneDuree,  zoneRef, zoneValidation, zoneValidPrevue;
-	private JLabel aide;
+	
+	
 	
 	private JRadioButton prevoir, cours, terminer;
 	private JRadioButton boutonStandard, boutonPerso;
 	
-	private JButton boutonTerminer;
+	private JButton connexion;
+	private JButton boutonTerminer, boutonAnnuler;
 	private ButtonGroup groupeBout, groupeBoutInstall;
 	private JTextField jour, mois, annee, valJ, valM, valA;
 	
@@ -41,15 +42,17 @@ public FormuInstall(Fenetre fen) {
 	
 	idInstallation = new JLabel ("Id Installation :");
 	dateInstall = new JLabel ("Date d'installation :");
-	typeInstall = new JLabel ("Type d'install :");
-	commentaires = new JLabel ("Commentaires :");
+	typeInstall = new JLabel ("Type d'installation :");
+	commentaires = new JLabel ("Commentaires (*) :");
 	dureeInstall = new JLabel ("Durée de l'installation :");
-	refProced = new JLabel ("Reference de la procédure :");
+	refProced = new JLabel ("Reference de la procédure (*):");
 	validation = new JLabel ("Validation :");
 	dateValidPrevue = new JLabel ("Date de validation :");
 	codeSoft = new JLabel ("Code Software :");
 	codeOS = new JLabel ("Code OS :");
 	respReseau = new JLabel ("Responsable réseau :");
+	facultatif = new JLabel(" * =  Facultatif");
+	
 	
 	zoneIdInstall = new JTextField(10);
 	zoneIdInstall.setText(Integer.toString(nmbIdInstall()));
@@ -73,17 +76,21 @@ public FormuInstall(Fenetre fen) {
 	zoneCodeSoft = new JComboBox();
 	
 	prevoir = new JRadioButton("A prévoir", false);
+	prevoir.setActionCommand("A prévoir");
 	cours = new JRadioButton("En cours", false);
+	cours.setActionCommand("En cours");
 	terminer = new JRadioButton("Terminée", true);	
+	terminer.setActionCommand("Terminée");
 	
 	boutonStandard = new JRadioButton("Standard", true);
 	boutonPerso = new JRadioButton("Personnalisé");
 	
 	boutonTerminer = new JButton("Confirmer");
 	
-	boutonTerminer ter = new boutonTerminer();
+	GestionBouton ter = new GestionBouton();
     boutonTerminer.addActionListener(ter);
-    
+    boutonAnnuler = new JButton("Annuler");
+    boutonAnnuler.addActionListener(ter);
     
 	groupeBout = new ButtonGroup();
 	groupeBout.add(prevoir);
@@ -92,7 +99,8 @@ public FormuInstall(Fenetre fen) {
 	
 	prevoirBouton pb = new prevoirBouton();
 	prevoir.addItemListener(pb);
-	
+	cours.addItemListener(pb);
+	prevoir.addItemListener(pb);
 	
 	groupeBoutInstall = new ButtonGroup();
 	groupeBoutInstall.add(boutonStandard);
@@ -255,7 +263,15 @@ public FormuInstall(Fenetre fen) {
 	gbc.gridx = 2;
 	gbc.gridy = 11;
 	add(boutonTerminer, gbc);
-
+	
+	gbc.gridx = 3;
+	gbc.gridy = 11;
+	add(boutonAnnuler, gbc);
+	
+	gbc.gridx = 0;
+	gbc.gridy = 14;
+	add(facultatif, gbc);
+	
 	gesClicEffac ge = new gesClicEffac();
 	jour.addMouseListener(ge);
 	mois.addMouseListener(ge);
@@ -283,11 +299,12 @@ public FormuInstall(Fenetre fen) {
 	
 	catch (SQLException e) {
 		System.out.print("Impossible de se connecter à la base");
-		e.printStackTrace();
+		e.getMessage();
 	}
 	
 }
-//fin affichage formulaire
+
+
 private boolean dateValide (JTextField jour, JTextField mois, JTextField annee) throws DateException{
     boolean verif = false;
 
@@ -305,36 +322,12 @@ private boolean dateValide (JTextField jour, JTextField mois, JTextField annee) 
 
 
     }catch(java.lang.NumberFormatException e) {
-        JOptionPane.showMessageDialog(null, "Date non valide", "Erreur", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(null, "Date invalide", "Erreur", JOptionPane.ERROR_MESSAGE);
 
     }
     return verif;
 
 }
-
-private boolean dateValidation (JTextField valJ, JTextField valM, JTextField valA) throws DatePrevoirException{
-    boolean verif = false;
-
-    try {
-        int aV = Integer.parseInt(valA.getText());
-        int mV = Integer.parseInt(valM.getText());
-        int jV = Integer.parseInt(valJ.getText());
-
-        GregorianCalendar newDate1 = new GregorianCalendar(jV, mV-1, aV);
-        if (jV < 0 || jV > 31 || mV < 0 || mV > 12 || aV < 1000 || aV > 3000) {
-            throw new DatePrevoirException (aV, mV, jV);
-        }
-        verif = true;
-
-
-    }catch(java.lang.NumberFormatException t) {
-        JOptionPane.showMessageDialog(null, "Date non valide", "Erreur", JOptionPane.ERROR_MESSAGE);
-
-    }
-    return verif;
-
-}
-
 
 private java.sql.Date convertisseurDate(JTextField j, JTextField m, JTextField a) {
 
@@ -402,135 +395,143 @@ private class gesClicEffac implements MouseListener, MouseMotionListener {
 
 private class prevoirBouton implements ItemListener {
 	public void itemStateChanged(ItemEvent e) {
-		if (e.getStateChange() == ItemEvent.SELECTED) {
-			dateValidPrevue.setVisible(true);
-			valM.setVisible(true);
-			valJ.setVisible(true);
-			valA.setVisible(true);
-		}
-		else {
-			dateValidPrevue.setVisible(false);
-			valM.setVisible(false);
-			valJ.setVisible(false);
-			valA.setVisible(false);
-		}
+			if (e.getSource() == prevoir && e.getStateChange() == ItemEvent.SELECTED) {
+				dateValidPrevue.setVisible(true);
+				valM.setVisible(true);
+				valJ.setVisible(true);
+				valA.setVisible(true);}
+			else
+			if (e.getSource() == terminer && e.getStateChange() == ItemEvent.SELECTED || e.getSource() == cours && e.getStateChange()  == ItemEvent.SELECTED) {
+				dateValidPrevue.setVisible(false);
+				valM.setVisible(false);
+				valJ.setVisible(false);
+				valA.setVisible(false);}
 	}
 }
 
-private class boutonTerminer implements ActionListener {
+private class GestionBouton implements ActionListener {
 	public void actionPerformed(ActionEvent e) {
+		if(e.getSource() == boutonAnnuler) {
+			int annul = JOptionPane.showConfirmDialog(null,"Voulez-vous vraiment annuler?", "Annulation", JOptionPane.YES_NO_OPTION);
+			if(annul == JOptionPane.OK_OPTION) {
+				parent.getContInstall().removeAll();
+		    	parent.getContInstall().add(new FormuInstall(parent));
+		    	parent.getContInstall().repaint();
+		    	parent.getContInstall().revalidate();
+			}
+		}else if(e.getSource() == boutonTerminer) {
 		try {
-			if (dateValide(jour, mois, annee) && dureeValide() && comboValide()) {
+			if (dateValide(jour, mois, annee)&& dureeValide() && comboValide()) {
 				if(prevoir.isSelected()) {
-					if(dateValidation(valJ, valM, valA)) {
-						
-							int select = JOptionPane.showConfirmDialog(null, "Voulez vous vraiment terminer", "Attention", JOptionPane.YES_NO_OPTION);
-							if(select == JOptionPane.OK_OPTION) {
+					if(dateValide(valJ, valM, valA)) {
+						int select = JOptionPane.showConfirmDialog(null, "Voulez vous vraiment terminer", "Attention", JOptionPane.YES_NO_OPTION);
+						if(select == JOptionPane.OK_OPTION) {
 							envoisDonnees();
 							JOptionPane.showMessageDialog(null, "Confirmation de l'envoi", "Information", JOptionPane.INFORMATION_MESSAGE);
-							}
-						
+						}	
 					}
 				}
-						else {
-							JOptionPane.showConfirmDialog(null, "Voulez vous vraiment terminer", "Attention", JOptionPane.YES_NO_OPTION);
-						}			
+				if(cours.isSelected() || terminer.isSelected()) {
+					int select = JOptionPane.showConfirmDialog(null, "Voulez vous vraiment terminer", "Attention", JOptionPane.YES_NO_OPTION);
+					if(select == JOptionPane.OK_OPTION) {
+						envoisDonnees();
+						JOptionPane.showMessageDialog(null, "Confirmation de l'envoi", "Information", JOptionPane.INFORMATION_MESSAGE);
+					}
+				}			
 			}	
 		}
-
-		catch (DateException d) {
+		
+	
+			catch (DateException d) {
 	        JOptionPane.showConfirmDialog(null, d, "Attention", JOptionPane.ERROR_MESSAGE);
+	        d.getMessage();
+			}		
 		}
-		catch (DatePrevoirException d) {
-	        JOptionPane.showConfirmDialog(null, d, "Attention", JOptionPane.ERROR_MESSAGE);
-	      
-		}		
 	}
 }
 private void envoisDonnees(){
 	try {
-		
 		Connection connection = parent.connection();
 	
 		String instructionSQL = "insert into Installation (IdInstallation, DateInstallation, TypeInstallation,  Commentaires, DureeInstallation, RefProcedureInstallation, Validation, DateValidation, CodeSoftware, Matricule, CodeOS ) values (?,?,?,?,?,?,?,?,?,?,?)";
 	
-		PreparedStatement prepStat = connection.prepareStatement(instructionSQL);
-
-	
-		prepStat.setInt(1, nmbIdInstall());
-		prepStat.setDate(2, convertisseurDate(annee, mois, jour));
-		if(boutonStandard.isSelected()) {
-			prepStat.setBoolean(3, true);
-		}else {
-			prepStat.setBoolean(3,false);
-		}
-		if(zoneComment.getText().isEmpty()) {
-			prepStat.setNull(4, Types.VARCHAR);}
-		else {
-			prepStat.setString(4, zoneComment.getText());}
+		String bouton = groupeBout.getSelection().getActionCommand(); 
 		
-	    prepStat.setInt(5, Integer.parseInt(zoneDuree.getText()));
+		PreparedStatement prepStat = connection.prepareStatement(instructionSQL);
+		if(bouton == "A prévoir") {
+			prepStat.setInt(1, nmbIdInstall());
+			prepStat.setDate(2, convertisseurDate(annee, mois, jour));
+			if(boutonStandard.isSelected()) {
+				prepStat.setBoolean(3, true);
+			}else {
+				prepStat.setBoolean(3,false);
+			}
+			if(zoneComment.getText().isEmpty()) {
+				prepStat.setNull(4, Types.VARCHAR);}
+			else {
+				prepStat.setString(4, zoneComment.getText());}
+		
+			prepStat.setInt(5, Integer.parseInt(zoneDuree.getText()));
 	    
-	    if(zoneRef.getText().isEmpty()) {
-			prepStat.setNull(6, Types.VARCHAR);}
+			if(zoneRef.getText().isEmpty()) {
+				prepStat.setNull(6, Types.VARCHAR);}
+			else {
+				prepStat.setString(6,zoneRef.getText());}
+			
+
+			prepStat.setString(7, bouton);
+			prepStat.setDate(8, convertisseurDate(valA, valM, valJ));
+	
+			prepStat.setString(9, recupCodeSoftware());
+			prepStat.setString(10, recupResponsable());
+			prepStat.setString(11, recupCodeOS());
+			nmbId++;}
+		
 		else {
-	    prepStat.setString(6,zoneRef.getText());}
+			prepStat.setInt(1, nmbIdInstall());
+			prepStat.setDate(2, convertisseurDate(annee, mois, jour));
+			if(boutonStandard.isSelected()) {
+				prepStat.setBoolean(3, true);
+			}else {
+				prepStat.setBoolean(3,false);
+			}
+			if(zoneComment.getText().isEmpty()) {
+				prepStat.setNull(4, Types.VARCHAR);}
+			else {
+				prepStat.setString(4, zoneComment.getText());}
+		
+			prepStat.setInt(5, Integer.parseInt(zoneDuree.getText()));
 	    
-	    String bouton = groupeBout.getSelection().getActionCommand(); 
-	    if(prevoir.isSelected()) {
-	    	prepStat.setString(7, bouton);
-		    prepStat.setDate(8, convertisseurDate(valA, valM, valJ));
-	    }else {
-	    	
-		    prepStat.setString(7, bouton);
-		    prepStat.setNull(8, Types.DATE);
-	    }
-	    
-	    prepStat.setString(9, recupCodeSoftware());
-	    prepStat.setString(10, recupResponsable());
-	    prepStat.setString(11, recupCodeOS());
-	    nmbId++;
-	    
+			if(zoneRef.getText().isEmpty()) {
+				prepStat.setNull(6, Types.VARCHAR);}
+			else {
+				prepStat.setString(6,zoneRef.getText());}	
+
+			prepStat.setString(7, bouton);
+			prepStat.setNull(8, Types.DATE);
+	
+			prepStat.setString(9, recupCodeSoftware());
+			prepStat.setString(10, recupResponsable());
+			prepStat.setString(11, recupCodeOS());
+			nmbId++;}
+	
 	    if(prepStat.executeUpdate() > 0) {
 	    	
 	    	parent.getContInstall().removeAll();
 	    	parent.getContInstall().add(new FormuInstall(parent));
 	    	parent.getContInstall().repaint();
 	    	parent.getContInstall().revalidate();
-	    /*	zoneIdInstall.setText(String.valueOf(nmbId));
-            jour.setText("Jour");
-            mois.setText("Mois");
-            annee.setText("Année");
-            zoneComment.setText("");
-            zoneDuree.setText("");
-            zoneRef.setText("");
-            valJ.setText("Jour");
-            valM.setText("Mois");
-            valA.setText("Année");
-            boutonStandard.setSelected(true);
-            terminer.setSelected(true);
-            
-            if(zoneCodeOS.getSelectedItem() != "Choix OS"){	
-            	zoneCodeOS.setSelectedItem("Choix OS");}
-            
-            if(zoneCodeSoft.getSelectedItem() != "Choix Soft"){	
-            	zoneCodeSoft.setSelectedItem("Choix Soft");}
-            
-            if(zoneResp.getSelectedItem() != "Choix resp"){	
-            	zoneResp.setSelectedItem("Choix resp");}     
-	    */
 	    }
 	    connection.close();  
 	}catch(SQLException e) {
 		System.out.print("Impossible de se connecter à la base");
-		e.printStackTrace();
+		e.getMessage();
 	}
 
 }
 
 
 private String recupCodeSoftware() {
-	
     Connection connection = parent.connection();
     String res = "";
     try {
@@ -545,7 +546,7 @@ private String recupCodeSoftware() {
             connection.close();
     }catch(SQLException e) {
 
-        e.printStackTrace();
+        e.getMessage();
     }
     return res;
 
@@ -553,11 +554,9 @@ private String recupCodeSoftware() {
 
 
 private String recupResponsable() {
-	 
 	Connection connection = parent.connection();
 	String res = null;
 	try {
-
         String getComboString = String.valueOf(zoneResp.getSelectedItem());
         String requete = "select Matricule from responsablereseaux where NomPrenom = ?";
         PreparedStatement prepStat = connection.prepareStatement(requete);
@@ -568,14 +567,13 @@ private String recupResponsable() {
         }
             connection.close();
     }catch(SQLException e) {
-        e.printStackTrace();
+    	e.getMessage();
     }
     return res;
 	
 }
 
 private String recupCodeOS() {
-	
 	Connection connection = parent.connection();
 	String res = "";
 	try {
@@ -590,8 +588,8 @@ private String recupCodeOS() {
             connection.close();
             
     }catch(SQLException e) {
-        e.printStackTrace();
-    }
+    	e.getMessage();
+    }	
     return res;
 }
 
@@ -616,7 +614,6 @@ private boolean comboValide() {
 
 
 public int nmbIdInstall() {
-	 
 		Connection connection = parent.connection();
 		
 		try {
@@ -631,7 +628,7 @@ public int nmbIdInstall() {
 		}
 		
 		catch (SQLException e) {
-		e.printStackTrace();
+			e.getMessage();
 		}
 		return nmbId;
 	}	
